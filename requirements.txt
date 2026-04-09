@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+transformers
+torch
+sentencepiece
+pydantic
+python-multipart
+nltk
+PyPDF2
+python-docx
+paddleocr
+paddlex
+Pillow
+opencv-python
