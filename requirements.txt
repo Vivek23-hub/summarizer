@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 transformers>=4.40,<5
+huggingface_hub[hf_xet]
 torch
 sentencepiece
 pydantic

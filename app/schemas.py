@@ -4,9 +4,10 @@ class TextRequest(BaseModel):
     text: str
     mode: str = "balanced"
     max_length: int = 100
+    document_id: str = None
 
 class QuestionRequest(BaseModel):
-    context: str
+    document_id: str
     question: str
 
 # from pydantic import BaseModel

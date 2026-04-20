@@ -5,14 +5,17 @@ const DocumentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  extractedText: {
-    type: String,
-    required: true,
-  },
   summary: {
     type: String,
     required: true,
   },
+  chatHistory: [
+    {
+      role: { type: String, enum: ['user', 'bot'], required: true },
+      content: { type: String, required: true },
+      timestamp: { type: Date, default: Date.now },
+    }
+  ],
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

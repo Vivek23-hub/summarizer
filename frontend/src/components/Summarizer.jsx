@@ -5,10 +5,12 @@ const Summarizer = ({ token }) => {
   const [file, setFile] = useState(null);
   const [textInput, setTextInput] = useState('');
   const [inputType, setInputType] = useState('file'); // 'file' or 'text'
+  const [modelMode, setModelMode] = useState('balanced');
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState('');
   const [error, setError] = useState(null);
   const [originalName, setOriginalName] = useState('');
+  const [documentId, setDocumentId] = useState(null);
   
   const fileInputRef = useRef(null);
 
@@ -54,6 +56,7 @@ const Summarizer = ({ token }) => {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('max_length', '100');
+        formData.append('mode', modelMode);
         
         // Let fetch set the correct Content-Type for FormData
         response = await fetch('http://localhost:5000/api/summarize-file', {
@@ -68,7 +71,8 @@ const Summarizer = ({ token }) => {
           headers,
           body: JSON.stringify({ 
             text: textInput,
-            max_length: 100 
+            max_length: 100,
+            mode: modelMode
           }),
         });
       }
@@ -81,6 +85,7 @@ const Summarizer = ({ token }) => {
 
       setSummary(data.summary);
       setOriginalName(data.originalName);
+      setDocumentId(data.documentId);
       
     } catch (err) {
       setError(err.message);
@@ -109,6 +114,7 @@ const Summarizer = ({ token }) => {
     setSummary('');
     setError(null);
     setOriginalName('');
+    setDocumentId(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -157,6 +163,19 @@ const Summarizer = ({ token }) => {
             >
               Paste Text
             </button>
+          </div>
+
+          <div className="model-selector">
+            <label htmlFor="model-mode">Model</label>
+            <select
+              id="model-mode"
+              value={modelMode}
+              onChange={(e) => setModelMode(e.target.value)}
+              disabled={loading}
+            >
+              <option value="balanced">Balanced (BART)</option>
+              <option value="google">Google (Pegasus)</option>
+            </select>
           </div>
 
           {inputType === 'file' ? (
@@ -238,7 +257,13 @@ const Summarizer = ({ token }) => {
           </div>
 
           <div className="actions">
-            <button className="btn" onClick={handleCopy}>
+            {documentId && (
+              <Link to={`/document/${documentId}`} className="btn" style={{ background: 'linear-gradient(45deg, #10b981, #059669)', border: 'none' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                Ask Questions & Chat
+              </Link>
+            )}
+            <button className="btn btn-secondary" onClick={handleCopy}>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
               Copy
             </button>

@@ -3,13 +3,17 @@ from app.schemas import TextRequest, QuestionRequest
 from app.model import model_instance
 from app.utils import clean_text
 from app.file_handlers import extract_text
-from app.qa_model import answer_question
+from app.qa_model import answer_question_rag, index_document
 
 router = APIRouter()
 
 @router.post("/summarize-text")
 async def summarize_text(data: TextRequest):
     cleaned = clean_text(data.text)
+
+    # Index document if an ID is provided
+    if data.document_id:
+        index_document(data.document_id, cleaned)
 
     summary = model_instance.summarize(
         cleaned,
@@ -21,9 +25,13 @@ async def summarize_text(data: TextRequest):
 
 
 @router.post("/summarize-file")
-async def summarize_file(file: UploadFile = File(...), mode: str = Form("balanced"), max_length: int = Form(100)):
+async def summarize_file(file: UploadFile = File(...), mode: str = Form("balanced"), max_length: int = Form(100), document_id: str = Form(None)):
     text = extract_text(file.file, file.filename)
     cleaned = clean_text(text)
+
+    # Index document if an ID is provided
+    if document_id:
+        index_document(document_id, cleaned)
 
     summary = model_instance.summarize(
         cleaned,
@@ -36,7 +44,7 @@ async def summarize_file(file: UploadFile = File(...), mode: str = Form("balance
 
 @router.post("/ask")
 async def ask_question_api(data: QuestionRequest):
-    answer = answer_question(data.context, data.question)
+    answer = answer_question_rag(data.document_id, data.question)
     return {"answer": answer}
 
 # from fastapi import APIRouter, UploadFile, File, Form

@@ -5,6 +5,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import Summarizer from './components/Summarizer';
+import DocumentView from './components/DocumentView';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || null);
@@ -18,6 +19,7 @@ function App() {
           <Route path="/login" element={<Login setToken={setToken} />} />
           <Route path="/register" element={<Register setToken={setToken} />} />
           <Route path="/dashboard" element={<Dashboard token={token} />} />
+          <Route path="/document/:id" element={<DocumentView token={token} />} />
         </Routes>
       </div>
     </Router>

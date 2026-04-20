@@ -2,38 +2,47 @@ from transformers import pipeline
 
 class SummarizerModel:
     def __init__(self):
-        print("Loading models...")
+        print("Initializing summarizer...")
 
-        # Fast (lightweight)
-        self.fast_model = pipeline(
-            "summarization",
-            model="t5-small"
-        )
+        # Lazy-load heavy models on first request.
+        self.model = None
+        self.google_model = None
 
-        # Keep balanced/accurate aliases available even when heavier models
-        # are disabled, so API requests using those modes do not crash.
-        self.medium_model = self.fast_model
-        self.quality_model = self.fast_model
+    def _get_default_model(self):
+        if self.model is None:
+            print("Loading default summarization model...")
+            self.model = pipeline(
+                "summarization",
+                model="facebook/bart-large-cnn"
+            )
+        return self.model
+
+    def _get_google_model(self):
+        if self.google_model is None:
+            self.google_model = pipeline(
+                "summarization",
+                model="google/pegasus-xsum"
+            )
+        return self.google_model
 
     def summarize(self, text, mode="balanced", max_length=None):
+        if mode == "google":
+            selected_model = self._get_google_model()
+            default_max = 120
+            default_min = 40
+        else:
+            selected_model = self._get_default_model()
+            default_max = 80
+            default_min = 30
+
         if max_length is None:
-            if mode == "fast":
-                max_length = 30
-            elif mode == "accurate":
-                max_length = 120
-            else:
-                max_length = 80
-        
-        min_length = max(10, max_length // 4)
+            max_len = default_max
+            min_len = default_min
+        else:
+            max_len = max_length
+            min_len = max(10, max_length // 4)
 
-        if mode == "fast":
-            return self._run(self.fast_model, text, max_length, min_length)
-
-        elif mode == "accurate":
-            return self._run(self.quality_model, text, max_length, min_length)
-
-        else:  # balanced
-            return self._run(self.medium_model, text, max_length, min_length)
+        return self._run(selected_model, text, max_len, min_len)
 
     def _run(self, model, text, max_len, min_len):
         result = model(

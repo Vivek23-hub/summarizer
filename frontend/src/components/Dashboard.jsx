@@ -1,6 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const timeAgo = (dateString) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.round((now - date) / 1000);
+  const minutes = Math.round(seconds / 60);
+  const hours = Math.round(minutes / 60);
+  const days = Math.round(hours / 24);
+
+  if (seconds < 60) return "Uploaded just now";
+  if (minutes < 60) return `Uploaded ${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+  if (hours < 24) return `Uploaded ${hours} hour${hours !== 1 ? 's' : ''} ago`;
+  if (days < 30) return `Uploaded ${days} day${days !== 1 ? 's' : ''} ago`;
+  return `Uploaded on ${date.toLocaleDateString()}`;
+};
+
 const Dashboard = ({ token }) => {
   const [summaries, setSummaries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -67,14 +82,17 @@ const Dashboard = ({ token }) => {
       ) : (
         <div className="summary-list">
           {summaries.map((doc) => (
-            <div key={doc._id} className="summary-list-item">
+            <div key={doc._id} className="summary-list-item" onClick={() => navigate(`/document/${doc._id}`)} style={{ cursor: 'pointer' }}>
               <div className="summary-list-item-header">
                 <h3>📄 {doc.originalName}</h3>
-                <span className="date">{new Date(doc.createdAt).toLocaleDateString()}</span>
+                <span className="date">👉 {timeAgo(doc.createdAt)}</span>
               </div>
               <p className="summary-preview">
                 {doc.summary.length > 150 ? doc.summary.substring(0, 150) + '...' : doc.summary}
               </p>
+              <div style={{ marginTop: '0.8rem', color: 'var(--primary-color)', fontSize: '0.85rem', fontWeight: '500' }}>
+                View & Ask Questions &rarr;
+              </div>
             </div>
           ))}
         </div>
